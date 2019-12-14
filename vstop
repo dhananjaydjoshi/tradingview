@@ -1,0 +1,63 @@
+//@version=2
+strategy("Dhananjay Volatility stop strategy with trend v1.0", overlay=true)
+
+//trend = ema(low,trenddecider)
+length = input(20)
+mult = input(5)
+atr_ = atr(length)
+max1 = max(nz(max_[1]), close)
+min1 = min(nz(min_[1]), close)
+is_uptrend_prev = nz(is_uptrend[1], true)
+stop = is_uptrend_prev ? max1 - mult * atr_ : min1 + mult * atr_
+vstop_prev = nz(vstop[1])
+vstop1 = is_uptrend_prev ? max(vstop_prev, stop) : min(vstop_prev, stop)
+is_uptrend = close - vstop1 >= 0
+is_trend_changed = is_uptrend != is_uptrend_prev
+max_ = is_trend_changed ? close : max1
+min_ = is_trend_changed ? close : min1
+vstop = is_trend_changed ? is_uptrend ? max_ - mult * atr_ : min_ + mult * atr_ : vstop1
+plot(vstop, color = is_uptrend ? green : red, style=line, linewidth=3)
+
+
+
+
+//length = input(20)
+//trenddecider_mult = input(2)
+//atr_ = atr(length)
+//trenddecider_max1 = max(nz(trenddecider_max_[1]), close)
+//trenddecider_min1 = min(nz(trenddecider_min_[1]), close)
+//trenddecider_is_uptrend_prev = nz(trenddecider_is_uptrend[1], true)
+//trenddecider_stop = trenddecider_is_uptrend_prev ? trenddecider_max1 - trenddecider_mult * atr_ : trenddecider_min1 + trenddecider_mult * atr_
+//trenddecider_vstop_prev = nz(trenddecider_vstop[1])
+//trenddecider_vstop1 = trenddecider_is_uptrend_prev ? max(trenddecider_vstop_prev, trenddecider_stop) : min(trenddecider_vstop_prev, trenddecider_stop)
+//trenddecider_is_uptrend = close - trenddecider_vstop1 >= 0
+//trenddecider_is_trend_changed = trenddecider_is_uptrend != trenddecider_is_uptrend_prev
+//trenddecider_max_ = trenddecider_is_trend_changed ? close : trenddecider_max1
+//trenddecider_min_ = trenddecider_is_trend_changed ? close : trenddecider_min1
+//trenddecider_vstop = trenddecider_is_trend_changed ? trenddecider_is_uptrend ? trenddecider_max_ - trenddecider_mult * atr_ : trenddecider_min_ + trenddecider_mult * atr_ : trenddecider_vstop1
+//plot(trenddecider_vstop, color = trenddecider_is_uptrend ? green : red, style=line, linewidth=3)
+sess = input(defval = "0915-1529", title="Trading Session")
+t = time(period, sess)
+sessionOpen = na(t) ? false : true
+Year = input("2019")
+Month = input("1")
+Dayofmonth = input("1")
+timeFilter = (year == 2019) and (month >= 1) and (dayofmonth > 1)
+s = timenow
+e = timenow
+
+bearish = close < vstop and timeFilter
+bullish = close > vstop and timeFilter
+
+//nter.long = (close > vstop) and timeFilter
+//strategy.close_all(when = close < vstop or e > 095800)
+//enter.short = (close < vstop) and timeFilter
+//strategy.close_all(when = close > vstop or e > 095800)
+
+
+strategy.entry("long", strategy.long, comment="GOLong" , when = bullish)
+strategy.exit("long","strategy.long",comment="ExitLong",when= close < vstop or not sessionOpen) 
+strategy.entry("short", strategy.short, comment="GoShort" , when = bearish)
+strategy.exit("short","strategy.short",comment="ExitLong",when = close > vstop or not sessionOpen)
+//strategy.close_all(when = not sessionOpen)
+    
